@@ -1,3 +1,3 @@
 C Proxy
 
-Playing with epoll, kqueue, pthreads, and sockets in C.
+TCP proxy implemented in C.  Uses a thread pool of configurable size, and automatically chooses between epoll, kqueue, and poll to process events.
