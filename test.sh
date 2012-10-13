@@ -3,7 +3,7 @@
 BASE_PORT=5000
 NUM_PORTS=10
 NUM_THREADS=4
-CMD="./proxy"
+CMD="./cproxy"
 i=0
 while [ ${i} -lt ${NUM_PORTS} ]; do
   CMD="${CMD} -l 0.0.0.0:$((${BASE_PORT} + ${i}))"

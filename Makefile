@@ -16,12 +16,13 @@ SRC = bufferpool.c \
       timeutil.c
 OBJS = $(SRC:.c=.o)
 
-all: proxy
+all: cproxy
 
 clean:
-	rm -f *.o proxy
+	rm -f *.o cproxy
 
-proxy: $(OBJS)
+cproxy: $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
 depend:
 	$(CC) $(CFLAGS) -MM $(SRC) > .makeinclude
