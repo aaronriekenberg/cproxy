@@ -1,0 +1,241 @@
+#include "log.h"
+#include "errutil.h"
+#include "memutil.h"
+#include "pollutil.h"
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+
+struct InternalPollState
+{
+  int kqueueFD;
+  size_t numFDs;
+  struct kevent* keventArray;
+  size_t keventArrayCapacity;
+};
+
+void initializePollState(
+  struct PollState* pollState)
+{
+  struct InternalPollState* internalPollState;
+
+  assert(pollState != NULL);
+
+  memset(pollState, 0, sizeof(struct PollState));
+  internalPollState =
+    checkedCalloc(1, sizeof(struct InternalPollState), __FILE__, __LINE__);
+  pollState->internalPollState = internalPollState;
+  internalPollState->kqueueFD = kqueue();
+  if (internalPollState->kqueueFD < 0)
+  {
+    proxyLog("kqueue error errno %d: %s",
+             errno,
+             errnoToString(errno));
+    abort();
+  }
+  proxyLog("created kqueue (fd=%d)",
+           internalPollState->kqueueFD);
+}
+
+static int signalSafeKevent(
+  int kq, const struct kevent *changelist, int nchanges,
+  struct kevent *eventlist, int nevents,
+  const struct timespec *timeout)
+{
+  bool interrupted;
+  int retVal;
+  const struct timespec zeroTimespec = {0, 0};
+  do
+  {
+    retVal = kevent(
+      kq, changelist, nchanges,
+      eventlist, nevents,
+      timeout);
+    interrupted = ((retVal < 0) &&
+                   (errno == EINTR));
+    /* Set timeout = &zeroTimespec so that if the last kevent was
+       interrupted we don't block on the next try.  Assumes
+       waiting too long is worse than not waiting long enough. */
+    timeout = &zeroTimespec;
+  } while (interrupted);
+  return retVal;
+}
+
+void addPollFDToPollState(
+  struct PollState* pollState,
+  int fd,
+  void* data,
+  enum ReadEventInterest readEventInterest,
+  enum WriteEventInterest writeEventInterest)
+{
+  struct InternalPollState* internalPollState;
+  int retVal;
+  struct kevent events[2];
+  const struct timespec ts = {0, 0};
+  const u_short readEventFlags = 
+    (readEventInterest == INTERESTED_IN_READ_EVENTS) ?
+    (EV_ADD | EV_ENABLE) :
+    (EV_ADD | EV_DISABLE);
+  const u_short writeEventFlags = 
+    (writeEventInterest == INTERESTED_IN_WRITE_EVENTS) ?
+    (EV_ADD | EV_ENABLE) :
+    (EV_ADD | EV_DISABLE);
+
+  assert(pollState != NULL);
+
+  internalPollState = pollState->internalPollState;
+
+  EV_SET(&events[0], fd, EVFILT_READ, readEventFlags, 0, 0, data);
+  EV_SET(&events[1], fd, EVFILT_WRITE, writeEventFlags, 0, 0, data);
+
+  retVal = signalSafeKevent(internalPollState->kqueueFD, events, 2, NULL, 0, &ts);
+  if (retVal < 0)
+  {
+    proxyLog("kevent add event error fd %d errno %d: %s",
+             fd,
+             errno,
+             errnoToString(errno));
+    abort();
+  }
+  else
+  {
+    bool changedCapacity = false;
+    ++(internalPollState->numFDs);
+    while ((internalPollState->numFDs * 2) >
+           internalPollState->keventArrayCapacity)
+    {
+      changedCapacity = true;
+      if (internalPollState->keventArrayCapacity == 0)
+      {
+        internalPollState->keventArrayCapacity = 16;
+      }
+      else
+      {
+        internalPollState->keventArrayCapacity *= 2;
+      }
+    }
+    if (changedCapacity)
+    {
+      internalPollState->keventArray =
+        checkedRealloc(internalPollState->keventArray,
+                       (internalPollState->numFDs * 2) *
+                       sizeof(struct kevent),
+                       __FILE__, __LINE__);
+    }
+  }
+}
+
+void updatePollFDInPollState(
+  struct PollState* pollState,
+  int fd,
+  void* data,
+  enum ReadEventInterest readEventInterest,
+  enum WriteEventInterest writeEventInterest)
+{
+  struct InternalPollState* internalPollState = pollState->internalPollState;
+  int retVal;
+  struct kevent events[2];
+  const struct timespec ts = {0, 0};
+  const u_short readEventFlags = 
+    (readEventInterest == INTERESTED_IN_READ_EVENTS) ?
+    EV_ENABLE :
+    EV_DISABLE;
+  const u_short writeEventFlags = 
+    (writeEventInterest == INTERESTED_IN_WRITE_EVENTS) ?
+    EV_ENABLE :
+    EV_DISABLE;
+
+  assert(pollState != NULL);
+
+  internalPollState = pollState->internalPollState;
+
+  EV_SET(&events[0], fd, EVFILT_READ, readEventFlags, 0, 0, data);
+  EV_SET(&events[1], fd, EVFILT_WRITE, writeEventFlags, 0, 0, data);
+
+  retVal = signalSafeKevent(internalPollState->kqueueFD, events, 2, NULL, 0, &ts);
+  if (retVal < 0)
+  {
+    proxyLog("kevent update event error fd %d errno %d: %s",
+             fd,
+             errno,
+             errnoToString(errno));
+    abort();
+  }
+}
+
+void removePollFDFromPollState(
+  struct PollState* pollState,
+  int fd)
+{
+  struct InternalPollState* internalPollState;
+  int retVal;
+  struct kevent events[2];
+  const struct timespec ts = {0, 0};
+
+  assert(pollState != NULL);
+
+  internalPollState = pollState->internalPollState;
+
+  EV_SET(&events[0], fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+  EV_SET(&events[1], fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+  retVal = signalSafeKevent(internalPollState->kqueueFD, events, 2, NULL, 0, &ts);
+  if (retVal < 0)
+  {
+    proxyLog("kevent remove event error fd %d errno %d: %s",
+             fd,
+             errno,
+             errnoToString(errno));
+    abort();
+  }
+  else
+  {
+    --(internalPollState->numFDs);
+  }
+}
+
+const struct PollResult* blockingPoll(
+  struct PollState* pollState)
+{
+  struct InternalPollState* internalPollState;
+
+  assert(pollState != NULL);
+
+  internalPollState = pollState->internalPollState;
+  if (internalPollState->numFDs > 0)
+  {
+    size_t i;
+    int retVal = signalSafeKevent(
+                   internalPollState->kqueueFD,
+                   NULL, 0,
+                   internalPollState->keventArray,
+                   internalPollState->numFDs * 2,
+                   NULL);
+    if (retVal < 0)
+    {
+      proxyLog("kevent wait error errno %d: %s",
+               errno,
+               errnoToString(errno));
+      abort();
+    }
+    setPollResultNumReadyFDs(
+      &(pollState->pollResult),
+      retVal);
+    for (i = 0; i < retVal; ++i)
+    {
+      struct ReadyFDInfo* readyFDInfo =
+        &(pollState->pollResult.readyFDInfoArray[i]);
+      const struct kevent* readyKEvent =
+        &(internalPollState->keventArray[i]);
+      readyFDInfo->data = readyKEvent->udata;
+      readyFDInfo->readyForRead = (readyKEvent->filter == EVFILT_READ);
+      readyFDInfo->readyForWrite = (readyKEvent->filter == EVFILT_WRITE);
+      readyFDInfo->readyForError = false;
+    }
+    return (&(pollState->pollResult));
+  }
+  return NULL;
+}
