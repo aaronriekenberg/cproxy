@@ -1,4 +1,4 @@
-# C Proxy
+# cproxy
 
 ## Description
 High-performance TCP proxy implemented in C.
