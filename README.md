@@ -1,6 +1,5 @@
 # cproxy
 
-## Description
 High-performance TCP proxy implemented in C.
 
 ## Theory of Operation
