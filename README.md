@@ -1,7 +1,7 @@
 # C Proxy
 
 ## Description
-TCP proxy implemented in C.
+High-performance TCP proxy implemented in C.
 
 ## Theory of Operation
 * 1 acceptor thread to accept incoming client connections.
