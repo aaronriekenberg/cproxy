@@ -1270,7 +1270,7 @@ static void* runAcceptorThread(void* param)
     }
 
     for (i = 0; 
-         (i < pollResult->numReadyFDs);
+         i < pollResult->numReadyFDs;
          ++i)
     {
       struct ReadyFDInfo* readyFDInfo = &(pollResult->readyFDInfoArray[i]);
