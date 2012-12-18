@@ -2,6 +2,16 @@
 
 High-performance TCP proxy implemented in C.
 
+## Usage
+    cproxy -l <local addr>:<local port> [-l <local addr>:<local port>...] 
+           -r <remote addr>:<remote port> [-b <buf size>] [-n] [-t <num io threads>]
+    Arguments:
+      -l <local addr>:<local port>: specify listen address and port
+      -r <remote addr>:<remote port>: specify remote address and port
+      -b <buf size>: specify session buffer size in bytes
+      -n: enable TCP no delay
+      -t: <num io threads>: specify number of I/O threads
+
 ## Theory of Operation
 * 1 acceptor thread to accept incoming client connections.
 * Pool of 1 to N I/O threads to handle read, write, and connect operations.  Pool size is configurable with -t option.  Client sessions assigned to I/O threads using round robin.
