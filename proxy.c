@@ -39,16 +39,19 @@
 #define MAX_OPERATIONS_FOR_ONE_FD (100)
 #define INITIAL_CONNECTION_SOCKET_INFO_POOL_SIZE (16)
 
-static void printUsageAndExit(
-  const char* programName)
+static void printUsageAndExit()
 {
-  printf("Usage: %s -l <local port>:<local addr> "
-         "-r <remote addr>:<remote port>\n", programName);
-  printf("Optional arguments:\n");
-  printf("  -b <buffer size in bytes>\n");
-  printf("  -n <enable TCP no delay>\n");
-  printf("  -t <num io threads>\n");
-  printf("  additional -l argument(s)\n");
+  printf("Usage:\n");
+  printf("  cproxy -l <local addr>:<local port>\n");
+  printf("         [-l <local addr>:<local port>...]\n");
+  printf("         -r <remote addr>:<remote port>\n");
+  printf("         [-b <buf size>] [-n] [-t <num io threads>]\n");
+  printf("Arguments:\n");
+  printf("  -l <local addr>:<local port>: specify listen address and port\n");
+  printf("  -r <remote addr>:<remote port>: specify remote address and port\n");
+  printf("  -b <buf size>: specify session buffer size in bytes\n");
+  printf("  -n: enable TCP no delay\n");
+  printf("  -t: <num io threads>: specify number of I/O threads\n");
   exit(1);
 }
 
@@ -203,7 +206,7 @@ static const struct ProxySettings* processArgs(
     case 'r':
       if (foundRemoteAddress)
       {
-        printUsageAndExit(argv[0]);
+        printUsageAndExit();
       }
       proxySettings->remoteAddrInfo =
         parseRemoteAddrPort(
@@ -217,7 +220,7 @@ static const struct ProxySettings* processArgs(
       break;
 
     case '?':
-      printUsageAndExit(argv[0]);
+      printUsageAndExit();
       break;
     }
   }
@@ -225,7 +228,7 @@ static const struct ProxySettings* processArgs(
 
   if ((!foundLocalAddress) || (!foundRemoteAddress))
   {
-    printUsageAndExit(argv[0]);
+    printUsageAndExit();
   }
 
   return proxySettings;
