@@ -22,7 +22,7 @@
 
 void printTimeString()
 {
-  int retVal;
+  size_t charsWritten;
   char buffer[80];
   struct timeval tv;
   struct tm tm;
@@ -39,20 +39,20 @@ void printTimeString()
     abort();
   }
 
-  retVal = strftime(buffer, 80, "%Y-%b-%d %H:%M:%S", &tm);
-  if (retVal <= 0)
+  charsWritten = strftime(buffer, 80, "%Y-%b-%d %H:%M:%S", &tm);
+  if (charsWritten == 0)
   {
     printf("strftime error\n");
     abort();
   }
-  else if (retVal > (80 - 7 - 1))
+  else if (charsWritten > (80 - 7 - 1))
   {
     printf("strftime overflow\n");
     abort();
   }
   else
   {
-    sprintf(&buffer[retVal], ".%06ld", (long)tv.tv_usec);
+    sprintf(&buffer[charsWritten], ".%06ld", (long)tv.tv_usec);
   }
 
   printf("%s", buffer);
