@@ -469,7 +469,7 @@ static int createRemoteSocket(
   struct AddrPortStrings* proxyClientAddrPortStrings,
   enum RemoteSocketResult* pResult)
 {
-  int retVal;
+  int connectRetVal;
   struct sockaddr_storage proxyClientAddress;
   socklen_t proxyClientAddressSize;
   int remoteSocket = socket(proxySettings->remoteAddrInfo->ai_family,
@@ -490,17 +490,17 @@ static int createRemoteSocket(
     return -1;
   }
 
-  retVal = connect(
+  connectRetVal = connect(
     remoteSocket,
     proxySettings->remoteAddrInfo->ai_addr,
     proxySettings->remoteAddrInfo->ai_addrlen);
-  if ((retVal < 0) &&
+  if ((connectRetVal < 0) &&
       ((errno == EINPROGRESS) ||
        (errno == EINTR)))
   {
     *pResult = REMOTE_SOCKET_IN_PROGRESS;
   }
-  else if (retVal < 0)
+  else if (connectRetVal < 0)
   {
     char* socketErrorString = errnoToString(errno);
     proxyLog("remote socket connect error errno = %d: %s",
