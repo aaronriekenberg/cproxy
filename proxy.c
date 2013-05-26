@@ -744,41 +744,37 @@ static struct ConnectionSocketInfo* handleConnectionReadyForRead(
            (!writeWouldBlock) &&
            (numReads < MAX_OPERATIONS_FOR_ONE_FD))
     {
-      ssize_t bytesRead = signalSafeRead(
+      const ssize_t readRetVal = signalSafeRead(
         connectionSocketInfo->socket,
         relatedConnectionSocketInfo->waitingToWriteBuffer,
         relatedConnectionSocketInfo->waitingToWriteBufferCapacity);
       ++numReads;
-      if ((bytesRead < 0) &&
+      if ((readRetVal == -1) &&
           ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
       {
         readWouldBlock = true;
       }
-      else if (bytesRead <= 0)
+      else if ((readRetVal == -1) || (readRetVal == 0))
       {
         pDisconnectSocketInfo = connectionSocketInfo;
       }
       else
       {
         relatedConnectionSocketInfo->waitingToWriteBufferOffset = 0;
-        relatedConnectionSocketInfo->waitingToWriteBufferSize = bytesRead;
+        relatedConnectionSocketInfo->waitingToWriteBufferSize = readRetVal;
         while ((relatedConnectionSocketInfo->waitingToWriteBufferSize > 
                 relatedConnectionSocketInfo->waitingToWriteBufferOffset) &&
                (!pDisconnectSocketInfo) &&
                (!writeWouldBlock))
         {
-          ssize_t writeRetVal = signalSafeWrite(
+          const ssize_t writeRetVal = signalSafeWrite(
             relatedConnectionSocketInfo->socket,
             &(relatedConnectionSocketInfo->waitingToWriteBuffer[
               relatedConnectionSocketInfo->waitingToWriteBufferOffset]),
             relatedConnectionSocketInfo->waitingToWriteBufferSize -
             relatedConnectionSocketInfo->waitingToWriteBufferOffset);
-          if (writeRetVal > 0)
-          {
-            relatedConnectionSocketInfo->waitingToWriteBufferOffset += writeRetVal;
-          }
-          else if ((writeRetVal < 0) &&
-                   ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+          if ((writeRetVal == -1) &&
+              ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
           {
             relatedConnectionSocketInfo->waitingForWrite = true;
             updatePollStateForConnectionSocketInfo(pollState, relatedConnectionSocketInfo);
@@ -786,9 +782,14 @@ static struct ConnectionSocketInfo* handleConnectionReadyForRead(
             updatePollStateForConnectionSocketInfo(pollState, connectionSocketInfo);
             writeWouldBlock = true;
           }
-          else
+          else if ((writeRetVal == -1) || (writeRetVal == 0))
           {
             pDisconnectSocketInfo = relatedConnectionSocketInfo;
+          }
+          else
+          {
+            const size_t bytesWritten = writeRetVal;
+            relatedConnectionSocketInfo->waitingToWriteBufferOffset += bytesWritten;
           }
         }
       }
@@ -851,24 +852,25 @@ static struct ConnectionSocketInfo* handleConnectionReadyForWrite(
            (!pDisconnectSocketInfo) &&
            (!writeWouldBlock))
     {
-      ssize_t writeRetVal = signalSafeWrite(
+      const ssize_t writeRetVal = signalSafeWrite(
         connectionSocketInfo->socket,
         &(connectionSocketInfo->waitingToWriteBuffer[
            connectionSocketInfo->waitingToWriteBufferOffset]),
         connectionSocketInfo->waitingToWriteBufferSize -
         connectionSocketInfo->waitingToWriteBufferOffset);
-      if (writeRetVal > 0)
-      {
-        connectionSocketInfo->waitingToWriteBufferOffset += writeRetVal;
-      }
-      else if ((writeRetVal < 0) &&
-               ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+      if ((writeRetVal == -1) &&
+          ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
       {
         writeWouldBlock = true;
       }
-      else
+      else if ((writeRetVal == -1) || (writeRetVal == 0))
       {
         pDisconnectSocketInfo = connectionSocketInfo;
+      }
+      else
+      {
+        const size_t bytesWritten = writeRetVal;
+        connectionSocketInfo->waitingToWriteBufferOffset += bytesWritten;
       }
     }
     if ((!pDisconnectSocketInfo) && (!writeWouldBlock))
@@ -976,17 +978,17 @@ static void handleAddClientMessageFDReady(
   do
   {
     size_t bytesToRead = sizeof(int) - pIOThreadReceiveFDInfo->receiveIndex;
-    ssize_t bytesRead = 
+    const ssize_t readRetVal = 
       signalSafeRead(
         pIOThreadReceiveFDInfo->addClientMessageFD,
         &(pCharBuffer[pIOThreadReceiveFDInfo->receiveIndex]),
         bytesToRead);
-    if ((bytesRead < 0) &&
+    if ((readRetVal == -1) &&
         ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
     {
       readWouldBlock = true;
     }
-    else if (bytesRead <= 0)
+    else if ((readRetVal == -1) || (readRetVal == 0))
     {
       proxyLog("read error %d from pipe fd %d",
                errno, pIOThreadReceiveFDInfo->addClientMessageFD);
@@ -994,6 +996,7 @@ static void handleAddClientMessageFDReady(
     }
     else
     {
+      const size_t bytesRead = readRetVal;
       pIOThreadReceiveFDInfo->receiveIndex += bytesRead;
       bytesToRead -= bytesRead;
     }
@@ -1175,15 +1178,15 @@ static void writeAcceptedFDToIOThread(
 {
   unsigned char* pCharBuffer = (unsigned char*)(&acceptedFD);
   size_t bytesToWrite = sizeof(int);
-  size_t bytesWritten = 0;
+  size_t totalBytesWritten = 0;
 
   do
   {
-    ssize_t writeRetVal = signalSafeWrite(
+    const ssize_t writeRetVal = signalSafeWrite(
       ioThreadPipeWriteFDs[*nextPipeWriteFDIndex],
-      &(pCharBuffer[bytesWritten]),
+      &(pCharBuffer[totalBytesWritten]),
       bytesToWrite);
-    if (writeRetVal <= 0)
+    if ((writeRetVal == -1) || (writeRetVal == 0))
     {
       proxyLog("error writing to pipeFD %d",
                ioThreadPipeWriteFDs[*nextPipeWriteFDIndex]);
@@ -1191,8 +1194,9 @@ static void writeAcceptedFDToIOThread(
     }
     else
     {
-      bytesToWrite -= writeRetVal;
-      bytesWritten += writeRetVal;
+      const size_t bytesWritten = writeRetVal;
+      bytesToWrite -= bytesWritten;
+      totalBytesWritten += bytesWritten;
     }
   } while (bytesToWrite > 0);
 
