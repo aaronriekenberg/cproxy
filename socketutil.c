@@ -16,10 +16,8 @@
 
 #include "socketutil.h"
 #include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
@@ -47,18 +45,6 @@ int setSocketListening(
   int socket)
 {
   return listen(socket, SOMAXCONN);
-}
-
-int setSocketNonBlocking(
-  int socket)
-{
-  int flags = fcntl(socket, F_GETFL, 0);
-  if (flags < 0)
-  {
-    return flags;
-  }
-  flags |= O_NONBLOCK;
-  return fcntl(socket, F_SETFL, flags);
 }
 
 int setSocketReuseAddress(
@@ -99,55 +85,6 @@ int signalSafeAccept(
   do
   {
     retVal = accept(sockfd, addr, addrlen);
-    interrupted =
-      ((retVal < 0) &&
-       (errno == EINTR));
-  } while (interrupted);
-  return retVal;
-}
-
-ssize_t signalSafeRead(
-  int fd,
-  void* buf,
-  size_t count)
-{
-  bool interrupted;
-  ssize_t retVal;
-  do
-  {
-    retVal = read(fd, buf, count);
-    interrupted =
-      ((retVal < 0) &&
-       (errno == EINTR));
-  } while (interrupted);
-  return retVal;
-}
-
-ssize_t signalSafeWrite(
-  int fd,
-  void* buf,
-  size_t count)
-{
-  bool interrupted;
-  ssize_t retVal;
-  do
-  {
-    retVal = write(fd, buf, count);
-    interrupted =
-      ((retVal < 0) &&
-       (errno == EINTR));
-  } while (interrupted);
-  return retVal;
-}
-
-int signalSafeClose(
-  int fd)
-{
-  bool interrupted;
-  int retVal;
-  do
-  {
-    retVal = close(fd);
     interrupted =
       ((retVal < 0) &&
        (errno == EINTR));

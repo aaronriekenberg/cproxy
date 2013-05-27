@@ -16,6 +16,7 @@
 
 #include "bufferpool.h"
 #include "errutil.h"
+#include "fdutil.h"
 #include "linkedlist.h"
 #include "log.h"
 #include "memutil.h"
@@ -367,7 +368,7 @@ static void setupServerSockets(
       exit(1);
     }
 
-    if (setSocketNonBlocking(serverSocketInfo->socket) < 0)
+    if (setFDNonBlocking(serverSocketInfo->socket) < 0)
     {
       proxyLog("error setting non-blocking on server socket %s:%s",
                serverAddrPortStrings.addrString,
@@ -400,7 +401,7 @@ static bool setupClientSocket(
   struct sockaddr_storage proxyServerAddress;
   socklen_t proxyServerAddressSize;
 
-  if (setSocketNonBlocking(clientSocket) < 0)
+  if (setFDNonBlocking(clientSocket) < 0)
   {
     proxyLog("error setting non-blocking on accepted socket");
     return false;
@@ -482,7 +483,7 @@ static int createRemoteSocket(
     return -1;
   }
 
-  if (setSocketNonBlocking(remoteSocket) < 0)
+  if (setFDNonBlocking(remoteSocket) < 0)
   {
     proxyLog("error setting non-blocking on remote socket");
     signalSafeClose(remoteSocket);
@@ -1050,7 +1051,7 @@ static void* runIOThread(void* param)
 
   initializePollState(&pollState);
 
-  setSocketNonBlocking(ioThreadReceiveFDInfo.addClientMessageFD);
+  setFDNonBlocking(ioThreadReceiveFDInfo.addClientMessageFD);
   addPollFDToPollState(
     &pollState, 
     ioThreadReceiveFDInfo.addClientMessageFD,

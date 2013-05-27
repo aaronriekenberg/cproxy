@@ -19,6 +19,7 @@ LDFLAGS = -pthread
 
 SRC = bufferpool.c \
       errutil.c \
+      fdutil.c \
       linkedlist.c \
       log.c \
       memutil.c \

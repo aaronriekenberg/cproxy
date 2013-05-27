@@ -1,5 +1,6 @@
 bufferpool.o: bufferpool.c bufferpool.h memutil.h
 errutil.o: errutil.c errutil.h memutil.h
+fdutil.o: fdutil.c fdutil.h
 linkedlist.o: linkedlist.c linkedlist.h memutil.h
 log.o: log.c log.h memutil.h timeutil.h
 memutil.o: memutil.c memutil.h
