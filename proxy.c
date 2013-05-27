@@ -271,7 +271,7 @@ struct ConnectionSocketInfo
   struct ConnectionSocketInfo* relatedConnectionSocketInfo;
   struct AddrPortStrings clientAddrPortStrings;
   struct AddrPortStrings serverAddrPortStrings;
-  unsigned char waitingToWriteBuffer[0];
+  unsigned char waitingToWriteBuffer[];
 };
 
 static void addConnectionSocketInfoToPollState(
