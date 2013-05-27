@@ -15,6 +15,7 @@
 */
 
 #include "fdutil.h"
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -32,7 +33,7 @@ int setFDNonBlocking(
   return fcntl(socket, F_SETFL, flags);
 }
 
-ssize_t signalSafeRead(
+static ssize_t signalSafeRead(
   int fd,
   void* buf,
   size_t count)
@@ -49,7 +50,45 @@ ssize_t signalSafeRead(
   return retVal;
 }
 
-ssize_t signalSafeWrite(
+enum ReadFromFDResult readFromFD(
+  int fd,
+  void* buf,
+  size_t bytesToRead,
+  size_t* bytesRead)
+{
+  enum ReadFromFDResult result;
+  ssize_t readRetVal;
+
+  assert(fd >= 0);
+  assert(buf != NULL);
+  assert(bytesRead != NULL);
+
+  readRetVal = signalSafeRead(fd, buf, bytesToRead);
+  if ((readRetVal == -1) &&
+      ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+  {
+    result = READ_FROM_FD_WOULD_BLOCK;
+    *bytesRead = 0;
+  }
+  else if (readRetVal == 0)
+  {
+    result = READ_FROM_FD_EOF;
+    *bytesRead = 0;
+  }
+  else if (readRetVal == -1)
+  {
+    result = READ_FROM_FD_ERROR;
+    *bytesRead = 0;
+  }
+  else
+  {
+    result = READ_FROM_FD_SUCCESS;
+    *bytesRead = readRetVal;
+  }
+  return result;
+}
+
+static ssize_t signalSafeWrite(
   int fd,
   void* buf,
   size_t count)
@@ -64,6 +103,39 @@ ssize_t signalSafeWrite(
        (errno == EINTR));
   } while (interrupted);
   return retVal;
+}
+
+enum WriteToFDResult writeToFD(
+  int fd,
+  void* buf,
+  size_t bytesToWrite,
+  size_t* bytesWritten)
+{
+  enum WriteToFDResult result;
+  ssize_t writeRetVal;
+
+  assert(fd >= 0);
+  assert(buf != NULL);
+  assert(bytesWritten != NULL);
+
+  writeRetVal = signalSafeWrite(fd, buf, bytesToWrite);
+  if ((writeRetVal == -1) &&
+      ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+  {
+    result = WRITE_TO_FD_WOULD_BLOCK;
+    *bytesWritten = 0;
+  }
+  else if (writeRetVal == -1)
+  {
+    result = WRITE_TO_FD_ERROR;
+    *bytesWritten = 0;
+  }
+  else
+  {
+    result = WRITE_TO_FD_SUCCESS;
+    *bytesWritten = writeRetVal;
+  }
+  return result;
 }
 
 int signalSafeClose(

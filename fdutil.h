@@ -22,15 +22,32 @@
 extern int setFDNonBlocking(
   int fd);
 
-extern ssize_t signalSafeRead(
-  int fd,
-  void* buf,
-  size_t count);
+enum ReadFromFDResult
+{
+  READ_FROM_FD_WOULD_BLOCK,
+  READ_FROM_FD_EOF,
+  READ_FROM_FD_ERROR,
+  READ_FROM_FD_SUCCESS
+};
 
-extern ssize_t signalSafeWrite(
+enum ReadFromFDResult readFromFD(
   int fd,
   void* buf,
-  size_t count);
+  size_t bytesToRead,
+  size_t* bytesRead);
+
+enum WriteToFDResult
+{
+  WRITE_TO_FD_WOULD_BLOCK,
+  WRITE_TO_FD_ERROR,
+  WRITE_TO_FD_SUCCESS
+};
+
+enum WriteToFDResult writeToFD(
+  int fd,
+  void* buf,
+  size_t bytesToWrite,
+  size_t* bytesWritten);
 
 extern int signalSafeClose(
   int fd);
