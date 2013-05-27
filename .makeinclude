@@ -7,8 +7,8 @@ memutil.o: memutil.c memutil.h
 pollutil.o: pollutil.c epoll_pollutil.c errutil.h log.h memutil.h \
  pollutil.h pollresult.h
 pollresult.o: pollresult.c memutil.h pollresult.h
-proxy.o: proxy.c bufferpool.h errutil.h linkedlist.h log.h memutil.h \
- pollutil.h pollresult.h socketutil.h
+proxy.o: proxy.c bufferpool.h errutil.h fdutil.h linkedlist.h log.h \
+ memutil.h pollutil.h pollresult.h socketutil.h
 rb.o: rb.c rb.h
 socketutil.o: socketutil.c socketutil.h
 sortedtable.o: sortedtable.c memutil.h rb.h sortedtable.h
