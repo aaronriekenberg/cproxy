@@ -745,40 +745,37 @@ static struct ConnectionSocketInfo* handleConnectionReadyForRead(
            (!writeWouldBlock) &&
            (numReads < MAX_OPERATIONS_FOR_ONE_FD))
     {
-      size_t bytesRead;
-      const enum ReadFromFDResult readResult = readFromFD(
+      const struct ReadFromFDResult readResult = readFromFD(
         connectionSocketInfo->socket,
         relatedConnectionSocketInfo->waitingToWriteBuffer,
-        relatedConnectionSocketInfo->waitingToWriteBufferCapacity,
-        &bytesRead);
+        relatedConnectionSocketInfo->waitingToWriteBufferCapacity);
       ++numReads;
-      if (readResult == READ_FROM_FD_WOULD_BLOCK)
+      if (readResult.status == READ_FROM_FD_WOULD_BLOCK)
       {
         readWouldBlock = true;
       }
-      else if ((readResult == READ_FROM_FD_ERROR) ||
-               (readResult == READ_FROM_FD_EOF))
+      else if ((readResult.status == READ_FROM_FD_ERROR) ||
+               (readResult.status == READ_FROM_FD_EOF))
       {
         pDisconnectSocketInfo = connectionSocketInfo;
       }
       else
       {
         relatedConnectionSocketInfo->waitingToWriteBufferOffset = 0;
-        relatedConnectionSocketInfo->waitingToWriteBufferSize = bytesRead;
+        relatedConnectionSocketInfo->waitingToWriteBufferSize =
+          readResult.bytesRead;
         while ((relatedConnectionSocketInfo->waitingToWriteBufferSize > 
                 relatedConnectionSocketInfo->waitingToWriteBufferOffset) &&
                (!pDisconnectSocketInfo) &&
                (!writeWouldBlock))
         {
-          size_t bytesWritten;
-          const enum WriteToFDResult writeResult = writeToFD(
+          const struct WriteToFDResult writeResult = writeToFD(
             relatedConnectionSocketInfo->socket,
             &(relatedConnectionSocketInfo->waitingToWriteBuffer[
               relatedConnectionSocketInfo->waitingToWriteBufferOffset]),
             relatedConnectionSocketInfo->waitingToWriteBufferSize -
-            relatedConnectionSocketInfo->waitingToWriteBufferOffset,
-            &bytesWritten);
-          if (writeResult == WRITE_TO_FD_WOULD_BLOCK)
+            relatedConnectionSocketInfo->waitingToWriteBufferOffset);
+          if (writeResult.status == WRITE_TO_FD_WOULD_BLOCK)
           {
             relatedConnectionSocketInfo->waitingForWrite = true;
             updatePollStateForConnectionSocketInfo(pollState, relatedConnectionSocketInfo);
@@ -786,13 +783,14 @@ static struct ConnectionSocketInfo* handleConnectionReadyForRead(
             updatePollStateForConnectionSocketInfo(pollState, connectionSocketInfo);
             writeWouldBlock = true;
           }
-          else if (writeResult == WRITE_TO_FD_ERROR)
+          else if (writeResult.status == WRITE_TO_FD_ERROR)
           {
             pDisconnectSocketInfo = relatedConnectionSocketInfo;
           }
           else
           {
-            relatedConnectionSocketInfo->waitingToWriteBufferOffset += bytesWritten;
+            relatedConnectionSocketInfo->waitingToWriteBufferOffset +=
+              writeResult.bytesWritten;
           }
         }
       }
@@ -855,25 +853,24 @@ static struct ConnectionSocketInfo* handleConnectionReadyForWrite(
            (!pDisconnectSocketInfo) &&
            (!writeWouldBlock))
     {
-      size_t bytesWritten;
-      const enum WriteToFDResult writeResult = writeToFD(
+      const struct WriteToFDResult writeResult = writeToFD(
         connectionSocketInfo->socket,
         &(connectionSocketInfo->waitingToWriteBuffer[
            connectionSocketInfo->waitingToWriteBufferOffset]),
         connectionSocketInfo->waitingToWriteBufferSize -
-        connectionSocketInfo->waitingToWriteBufferOffset,
-        &bytesWritten);
-      if (writeResult == WRITE_TO_FD_WOULD_BLOCK)
+        connectionSocketInfo->waitingToWriteBufferOffset);
+      if (writeResult.status == WRITE_TO_FD_WOULD_BLOCK)
       {
         writeWouldBlock = true;
       }
-      else if (writeResult == WRITE_TO_FD_ERROR)
+      else if (writeResult.status == WRITE_TO_FD_ERROR)
       {
         pDisconnectSocketInfo = connectionSocketInfo;
       }
       else
       {
-        connectionSocketInfo->waitingToWriteBufferOffset += bytesWritten;
+        connectionSocketInfo->waitingToWriteBufferOffset +=
+          writeResult.bytesWritten;
       }
     }
     if ((!pDisconnectSocketInfo) && (!writeWouldBlock))
@@ -981,23 +978,22 @@ static void handleAddClientMessageFDReady(
   do
   {
     size_t bytesToRead = sizeof(int) - pIOThreadReceiveFDInfo->receiveIndex;
-    size_t bytesRead;
-    const enum ReadFromFDResult readResult = readFromFD(
+    const struct ReadFromFDResult readResult = readFromFD(
       pIOThreadReceiveFDInfo->addClientMessageFD,
       &(pCharBuffer[pIOThreadReceiveFDInfo->receiveIndex]),
-      bytesToRead,
-      &bytesRead);
-    if (readResult == READ_FROM_FD_WOULD_BLOCK)
+      bytesToRead);
+    if (readResult.status == READ_FROM_FD_WOULD_BLOCK)
     {
       readWouldBlock = true;
     }
-    else if (readResult == READ_FROM_FD_ERROR)
+    else if (readResult.status == READ_FROM_FD_ERROR)
     {
       proxyLog("read error %d from pipe fd %d",
-               errno, pIOThreadReceiveFDInfo->addClientMessageFD);
+               readResult.readErrno,
+               pIOThreadReceiveFDInfo->addClientMessageFD);
       abort();
     }
-    else if (readResult == READ_FROM_FD_EOF)
+    else if (readResult.status == READ_FROM_FD_EOF)
     {
       proxyLog("read EOF from pipe fd %d",
                pIOThreadReceiveFDInfo->addClientMessageFD);
@@ -1005,8 +1001,8 @@ static void handleAddClientMessageFDReady(
     }
     else
     {
-      pIOThreadReceiveFDInfo->receiveIndex += bytesRead;
-      bytesToRead -= bytesRead;
+      pIOThreadReceiveFDInfo->receiveIndex += readResult.bytesRead;
+      bytesToRead -= readResult.bytesRead;
     }
 
     if (bytesToRead == 0)
@@ -1190,13 +1186,11 @@ static void writeAcceptedFDToIOThread(
 
   do
   {
-    size_t bytesWritten;
-    const enum WriteToFDResult writeResult = writeToFD(
+    const struct WriteToFDResult writeResult = writeToFD(
       ioThreadPipeWriteFDs[*nextPipeWriteFDIndex],
       &(pCharBuffer[totalBytesWritten]),
-      bytesToWrite,
-      &bytesWritten);
-    if (writeResult != WRITE_TO_FD_SUCCESS)
+      bytesToWrite);
+    if (writeResult.status != WRITE_TO_FD_SUCCESS)
     {
       proxyLog("error writing to pipeFD %d",
                ioThreadPipeWriteFDs[*nextPipeWriteFDIndex]);
@@ -1204,8 +1198,8 @@ static void writeAcceptedFDToIOThread(
     }
     else
     {
-      bytesToWrite -= bytesWritten;
-      totalBytesWritten += bytesWritten;
+      bytesToWrite -= writeResult.bytesWritten;
+      totalBytesWritten += writeResult.bytesWritten;
     }
   } while (bytesToWrite > 0);
 

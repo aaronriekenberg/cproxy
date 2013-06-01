@@ -50,42 +50,58 @@ static ssize_t signalSafeRead(
   return retVal;
 }
 
-enum ReadFromFDResult readFromFD(
+struct ReadFromFDResult readFromFD(
   int fd,
   void* buf,
-  size_t bytesToRead,
-  size_t* bytesRead)
+  size_t bytesToRead)
 {
-  enum ReadFromFDResult result;
   ssize_t readRetVal;
 
   assert(fd >= 0);
   assert(buf != NULL);
-  assert(bytesRead != NULL);
 
   readRetVal = signalSafeRead(fd, buf, bytesToRead);
   if ((readRetVal == -1) &&
       ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
   {
-    result = READ_FROM_FD_WOULD_BLOCK;
-    *bytesRead = 0;
+    const struct ReadFromFDResult result =
+    {
+      .status = READ_FROM_FD_WOULD_BLOCK,
+      .bytesRead = 0,
+      .readErrno = errno
+    };
+    return result;
   }
   else if (readRetVal == 0)
   {
-    result = READ_FROM_FD_EOF;
-    *bytesRead = 0;
+    const struct ReadFromFDResult result =
+    {
+      .status = READ_FROM_FD_EOF,
+      .bytesRead = 0,
+      .readErrno = 0
+    };
+    return result;
   }
   else if (readRetVal == -1)
   {
-    result = READ_FROM_FD_ERROR;
-    *bytesRead = 0;
+    const struct ReadFromFDResult result =
+    {
+      .status = READ_FROM_FD_ERROR,
+      .bytesRead = 0,
+      .readErrno = errno
+    };
+    return result;
   }
   else
   {
-    result = READ_FROM_FD_SUCCESS;
-    *bytesRead = readRetVal;
+    const struct ReadFromFDResult result =
+    {
+      .status = READ_FROM_FD_SUCCESS,
+      .bytesRead = readRetVal,
+      .readErrno = 0
+    };
+    return result;
   }
-  return result;
 }
 
 static ssize_t signalSafeWrite(
@@ -105,37 +121,48 @@ static ssize_t signalSafeWrite(
   return retVal;
 }
 
-enum WriteToFDResult writeToFD(
+struct WriteToFDResult writeToFD(
   int fd,
   void* buf,
-  size_t bytesToWrite,
-  size_t* bytesWritten)
+  size_t bytesToWrite)
 {
-  enum WriteToFDResult result;
   ssize_t writeRetVal;
 
   assert(fd >= 0);
   assert(buf != NULL);
-  assert(bytesWritten != NULL);
 
   writeRetVal = signalSafeWrite(fd, buf, bytesToWrite);
   if ((writeRetVal == -1) &&
       ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
   {
-    result = WRITE_TO_FD_WOULD_BLOCK;
-    *bytesWritten = 0;
+    const struct WriteToFDResult result =
+    {
+      .status = WRITE_TO_FD_WOULD_BLOCK,
+      .bytesWritten = 0,
+      .writeErrno = errno
+    };
+    return result;
   }
   else if (writeRetVal == -1)
   {
-    result = WRITE_TO_FD_ERROR;
-    *bytesWritten = 0;
+    const struct WriteToFDResult result =
+    {
+      .status = WRITE_TO_FD_ERROR,
+      .bytesWritten = 0,
+      .writeErrno = errno
+    };
+    return result;
   }
   else
   {
-    result = WRITE_TO_FD_SUCCESS;
-    *bytesWritten = writeRetVal;
+    const struct WriteToFDResult result =
+    {
+      .status = WRITE_TO_FD_SUCCESS,
+      .bytesWritten = writeRetVal,
+      .writeErrno = 0
+    };
+    return result;
   }
-  return result;
 }
 
 int signalSafeClose(

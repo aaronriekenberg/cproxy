@@ -22,7 +22,7 @@
 extern int setFDNonBlocking(
   int fd);
 
-enum ReadFromFDResult
+enum ReadFromFDStatus
 {
   READ_FROM_FD_WOULD_BLOCK,
   READ_FROM_FD_EOF,
@@ -30,24 +30,36 @@ enum ReadFromFDResult
   READ_FROM_FD_SUCCESS
 };
 
-enum ReadFromFDResult readFromFD(
+struct ReadFromFDResult
+{
+  enum ReadFromFDStatus status;
+  size_t bytesRead;
+  int readErrno;
+};
+
+struct ReadFromFDResult readFromFD(
   int fd,
   void* buf,
-  size_t bytesToRead,
-  size_t* bytesRead);
+  size_t bytesToRead);
 
-enum WriteToFDResult
+enum WriteToFDStatus
 {
   WRITE_TO_FD_WOULD_BLOCK,
   WRITE_TO_FD_ERROR,
   WRITE_TO_FD_SUCCESS
 };
 
-enum WriteToFDResult writeToFD(
+struct WriteToFDResult
+{
+  enum WriteToFDStatus status;
+  size_t bytesWritten;
+  int writeErrno;
+};
+
+struct WriteToFDResult writeToFD(
   int fd,
   void* buf,
-  size_t bytesToWrite,
-  size_t* bytesWritten);
+  size_t bytesToWrite);
 
 extern int signalSafeClose(
   int fd);
