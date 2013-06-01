@@ -17,7 +17,7 @@
 #ifndef FDUTIL_H
 #define FDUTIL_H
 
-#include <unistd.h>
+#include <stddef.h>
 
 extern int setFDNonBlocking(
   int fd);
@@ -33,8 +33,8 @@ enum ReadFromFDStatus
 struct ReadFromFDResult
 {
   enum ReadFromFDStatus status;
-  size_t bytesRead;
   int readErrno;
+  size_t bytesRead;
 };
 
 struct ReadFromFDResult readFromFD(
@@ -52,8 +52,8 @@ enum WriteToFDStatus
 struct WriteToFDResult
 {
   enum WriteToFDStatus status;
-  size_t bytesWritten;
   int writeErrno;
+  size_t bytesWritten;
 };
 
 struct WriteToFDResult writeToFD(

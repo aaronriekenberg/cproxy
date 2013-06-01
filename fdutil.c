@@ -67,8 +67,8 @@ struct ReadFromFDResult readFromFD(
     const struct ReadFromFDResult result =
     {
       .status = READ_FROM_FD_WOULD_BLOCK,
-      .bytesRead = 0,
-      .readErrno = errno
+      .readErrno = errno,
+      .bytesRead = 0
     };
     return result;
   }
@@ -77,8 +77,8 @@ struct ReadFromFDResult readFromFD(
     const struct ReadFromFDResult result =
     {
       .status = READ_FROM_FD_EOF,
-      .bytesRead = 0,
-      .readErrno = 0
+      .readErrno = 0,
+      .bytesRead = 0
     };
     return result;
   }
@@ -87,8 +87,8 @@ struct ReadFromFDResult readFromFD(
     const struct ReadFromFDResult result =
     {
       .status = READ_FROM_FD_ERROR,
-      .bytesRead = 0,
-      .readErrno = errno
+      .readErrno = errno,
+      .bytesRead = 0
     };
     return result;
   }
@@ -97,8 +97,8 @@ struct ReadFromFDResult readFromFD(
     const struct ReadFromFDResult result =
     {
       .status = READ_FROM_FD_SUCCESS,
-      .bytesRead = readRetVal,
-      .readErrno = 0
+      .readErrno = 0,
+      .bytesRead = readRetVal
     };
     return result;
   }
@@ -138,8 +138,8 @@ struct WriteToFDResult writeToFD(
     const struct WriteToFDResult result =
     {
       .status = WRITE_TO_FD_WOULD_BLOCK,
-      .bytesWritten = 0,
-      .writeErrno = errno
+      .writeErrno = errno,
+      .bytesWritten = 0
     };
     return result;
   }
@@ -148,8 +148,8 @@ struct WriteToFDResult writeToFD(
     const struct WriteToFDResult result =
     {
       .status = WRITE_TO_FD_ERROR,
-      .bytesWritten = 0,
-      .writeErrno = errno
+      .writeErrno = errno,
+      .bytesWritten = 0
     };
     return result;
   }
@@ -158,8 +158,8 @@ struct WriteToFDResult writeToFD(
     const struct WriteToFDResult result =
     {
       .status = WRITE_TO_FD_SUCCESS,
-      .bytesWritten = writeRetVal,
-      .writeErrno = 0
+      .writeErrno = 0,
+      .bytesWritten = writeRetVal
     };
     return result;
   }
