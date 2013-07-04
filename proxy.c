@@ -459,47 +459,60 @@ static bool setupClientSocket(
   return true;
 }
 
-enum RemoteSocketResult {
+enum RemoteSocketStatus
+{
   REMOTE_SOCKET_ERROR,
   REMOTE_SOCKET_CONNECTED,
   REMOTE_SOCKET_IN_PROGRESS
 };
 
-static int createRemoteSocket(
+struct RemoteSocketResult
+{
+  enum RemoteSocketStatus status;
+  int remoteSocket;
+};
+
+static struct RemoteSocketResult createRemoteSocket(
   const struct ProxySettings* proxySettings,
-  struct AddrPortStrings* proxyClientAddrPortStrings,
-  enum RemoteSocketResult* pResult)
+  struct AddrPortStrings* proxyClientAddrPortStrings)
 {
   int connectRetVal;
   struct sockaddr_storage proxyClientAddress;
   socklen_t proxyClientAddressSize;
-  int remoteSocket = socket(proxySettings->remoteAddrInfo->ai_family,
-                            proxySettings->remoteAddrInfo->ai_socktype,
-                            proxySettings->remoteAddrInfo->ai_protocol);
-  if (remoteSocket < 0)
+  struct RemoteSocketResult result =
+  {
+    .status = REMOTE_SOCKET_ERROR,
+    .remoteSocket =
+       socket(proxySettings->remoteAddrInfo->ai_family,
+              proxySettings->remoteAddrInfo->ai_socktype,
+              proxySettings->remoteAddrInfo->ai_protocol)
+  };
+  if (result.remoteSocket < 0)
   {
     proxyLog("error creating remote socket errno = %d", errno);
-    *pResult = REMOTE_SOCKET_ERROR;
-    return -1;
+    result.status = REMOTE_SOCKET_ERROR;
+    result.remoteSocket = -1;
+    return result;
   }
 
-  if (setFDNonBlocking(remoteSocket) < 0)
+  if (setFDNonBlocking(result.remoteSocket) < 0)
   {
     proxyLog("error setting non-blocking on remote socket");
-    signalSafeClose(remoteSocket);
-    *pResult = REMOTE_SOCKET_ERROR;
-    return -1;
+    signalSafeClose(result.remoteSocket);
+    result.status = REMOTE_SOCKET_ERROR;
+    result.remoteSocket = -1;
+    return result;
   }
 
   connectRetVal = connect(
-    remoteSocket,
+    result.remoteSocket,
     proxySettings->remoteAddrInfo->ai_addr,
     proxySettings->remoteAddrInfo->ai_addrlen);
   if ((connectRetVal < 0) &&
       ((errno == EINPROGRESS) ||
        (errno == EINTR)))
   {
-    *pResult = REMOTE_SOCKET_IN_PROGRESS;
+    result.status = REMOTE_SOCKET_IN_PROGRESS;
   }
   else if (connectRetVal < 0)
   {
@@ -507,33 +520,36 @@ static int createRemoteSocket(
     proxyLog("remote socket connect error errno = %d: %s",
              errno, socketErrorString);
     free(socketErrorString);
-    signalSafeClose(remoteSocket);
-    *pResult = REMOTE_SOCKET_ERROR;
-    return -1;
+    signalSafeClose(result.remoteSocket);
+    result.status = REMOTE_SOCKET_ERROR;
+    result.remoteSocket = -1;
+    return result;
   }
   else
   {
-    *pResult = REMOTE_SOCKET_CONNECTED;
+    result.status = REMOTE_SOCKET_CONNECTED;
   }
 
-  if ((proxySettings->noDelay) && (setSocketNoDelay(remoteSocket) < 0))
+  if ((proxySettings->noDelay) && (setSocketNoDelay(result.remoteSocket) < 0))
   {
     proxyLog("error setting no delay on remote socket");
-    signalSafeClose(remoteSocket);
-    *pResult = REMOTE_SOCKET_ERROR;
-    return -1;
+    signalSafeClose(result.remoteSocket);
+    result.status = REMOTE_SOCKET_ERROR;
+    result.remoteSocket = -1;
+    return result;
   }
 
   proxyClientAddressSize = sizeof(proxyClientAddress);
   if (getsockname(
-        remoteSocket,
+        result.remoteSocket,
         (struct sockaddr*)&proxyClientAddress,
         &proxyClientAddressSize) < 0)
   {
     proxyLog("getsockname error errno = %d", errno);
-    signalSafeClose(remoteSocket);
-    *pResult = REMOTE_SOCKET_ERROR;
-    return -1;
+    signalSafeClose(result.remoteSocket);
+    result.status = REMOTE_SOCKET_ERROR;
+    result.remoteSocket = -1;
+    return result;
   }
 
   if (addressToNameAndPort((struct sockaddr*)&proxyClientAddress,
@@ -541,23 +557,24 @@ static int createRemoteSocket(
                            proxyClientAddrPortStrings) < 0)
   {
     proxyLog("error getting proxy client address name and port");
-    signalSafeClose(remoteSocket);
-    *pResult = REMOTE_SOCKET_ERROR;
-    return -1;
+    signalSafeClose(result.remoteSocket);
+    result.status = REMOTE_SOCKET_ERROR;
+    result.remoteSocket = -1;
+    return result;
   }
 
-  if (*pResult != REMOTE_SOCKET_ERROR)
+  if (result.status != REMOTE_SOCKET_ERROR)
   {
     proxyLog("connect %s proxy to remote %s:%s -> %s:%s (fd=%d)",
-             ((*pResult == REMOTE_SOCKET_CONNECTED) ? "complete" : "starting"),
+             ((result.status == REMOTE_SOCKET_CONNECTED) ? "complete" : "starting"),
              proxyClientAddrPortStrings->addrString,
              proxyClientAddrPortStrings->portString,
              proxySettings->remoteAddrPortStrings.addrString,
              proxySettings->remoteAddrPortStrings.portString,
-             remoteSocket);
+             result.remoteSocket);
   }
 
-  return remoteSocket;
+  return result;
 }
 
 static void handleNewClientSocket(
@@ -579,12 +596,10 @@ static void handleNewClientSocket(
   }
   else
   {
-    enum RemoteSocketResult remoteSocketResult;
-    int remoteSocket = 
+    const struct RemoteSocketResult remoteSocketResult =
       createRemoteSocket(proxySettings,
-                         &proxyClientAddrPortStrings,
-                         &remoteSocketResult);
-    if (remoteSocketResult == REMOTE_SOCKET_ERROR)
+                         &proxyClientAddrPortStrings);
+    if (remoteSocketResult.status == REMOTE_SOCKET_ERROR)
     {
       signalSafeClose(clientSocket);
     }
@@ -600,13 +615,13 @@ static void handleNewClientSocket(
       connInfo1->waitingToWriteBufferSize = 0;
       connInfo1->waitingToWriteBufferCapacity = proxySettings->bufferSize;
       connInfo1->disconnectWhenWriteFinishes = false;
-      if (remoteSocketResult == REMOTE_SOCKET_CONNECTED)
+      if (remoteSocketResult.status == REMOTE_SOCKET_CONNECTED)
       {
         connInfo1->waitingForConnect = false;
         connInfo1->waitingForRead = true;
         connInfo1->waitingForWrite = false;
       }
-      else if (remoteSocketResult == REMOTE_SOCKET_IN_PROGRESS)
+      else if (remoteSocketResult.status == REMOTE_SOCKET_IN_PROGRESS)
       {
         connInfo1->waitingForConnect = false;
         connInfo1->waitingForRead = false;
@@ -620,19 +635,19 @@ static void handleNewClientSocket(
              sizeof(struct AddrPortStrings));
 
       connInfo2 = getBufferFromBufferPool(connectionSocketInfoPool);
-      connInfo2->socket = remoteSocket;
+      connInfo2->socket = remoteSocketResult.remoteSocket;
       connInfo2->type = PROXY_TO_REMOTE;
       connInfo2->waitingToWriteBufferOffset = 0;
       connInfo2->waitingToWriteBufferSize = 0;
       connInfo2->waitingToWriteBufferCapacity = proxySettings->bufferSize;
       connInfo2->disconnectWhenWriteFinishes = false;
-      if (remoteSocketResult == REMOTE_SOCKET_CONNECTED)
+      if (remoteSocketResult.status == REMOTE_SOCKET_CONNECTED)
       {
         connInfo2->waitingForConnect = false;
         connInfo2->waitingForRead = true;
         connInfo2->waitingForWrite = false;
       }
-      else if (remoteSocketResult == REMOTE_SOCKET_IN_PROGRESS)
+      else if (remoteSocketResult.status == REMOTE_SOCKET_IN_PROGRESS)
       {
         connInfo2->waitingForConnect = true;
         connInfo2->waitingForRead = false;
