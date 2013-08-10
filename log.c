@@ -74,14 +74,14 @@ static void initializeLogThreadNameKey()
 /* Must hold logMutex while calling. */
 static char* getLogThreadName()
 {
-  void* ptr;
+  char* ptr;
 
   initializeLogThreadNameKey();
 
   ptr = pthread_getspecific(logThreadNameKey);
   if (ptr)
   {
-    return ((char*)ptr);
+    return ptr;
   }
   else
   {
