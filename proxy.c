@@ -1069,7 +1069,12 @@ static void* runIOThread(void* param)
 
   initializePollState(&pollState);
 
-  setFDNonBlocking(ioThreadReceiveFDInfo.addClientMessageFD);
+  if (setFDNonBlocking(ioThreadReceiveFDInfo.addClientMessageFD) < 0)
+  {
+    proxyLog("error setting addClientMessageFD non blocking");
+    abort();
+  }
+
   addPollFDToPollState(
     &pollState, 
     ioThreadReceiveFDInfo.addClientMessageFD,
