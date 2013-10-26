@@ -50,10 +50,7 @@ void printTimeString()
     printf("strftime overflow\n");
     abort();
   }
-  else
-  {
-    sprintf(&buffer[charsWritten], ".%06ld", (long)tv.tv_usec);
-  }
 
+  sprintf(&buffer[charsWritten], ".%06ld", (long)tv.tv_usec);
   printf("%s", buffer);
 }
