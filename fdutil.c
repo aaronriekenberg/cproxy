@@ -44,7 +44,7 @@ static ssize_t signalSafeRead(
   {
     retVal = read(fd, buf, count);
     interrupted =
-      ((retVal < 0) &&
+      ((retVal == -1) &&
        (errno == EINTR));
   } while (interrupted);
   return retVal;
@@ -115,7 +115,7 @@ static ssize_t signalSafeWrite(
   {
     retVal = write(fd, buf, count);
     interrupted =
-      ((retVal < 0) &&
+      ((retVal == -1) &&
        (errno == EINTR));
   } while (interrupted);
   return retVal;
@@ -174,7 +174,7 @@ int signalSafeClose(
   {
     retVal = close(fd);
     interrupted =
-      ((retVal < 0) &&
+      ((retVal == -1) &&
        (errno == EINTR));
   } while (interrupted);
   return retVal;
