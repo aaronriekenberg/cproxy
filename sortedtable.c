@@ -125,7 +125,7 @@ bool sortedTableContainsKey(
   int key)
 {
   bool retVal = false;
-  struct SortedTableEntry entryToFind = {key, NULL};
+  const struct SortedTableEntry entryToFind = {key, NULL};
 
   assert(sortedTable != NULL);
 
@@ -142,7 +142,7 @@ void* findDataInSortedTable(
   int key)
 {
   void* retVal = NULL;
-  struct SortedTableEntry entryToFind = {key, NULL};
+  const struct SortedTableEntry entryToFind = {key, NULL};
   struct SortedTableEntry* pEntryFound;
 
   assert(sortedTable != NULL);
@@ -160,7 +160,7 @@ void* removeFromSortedTable(
   int key)
 {
   void* retVal = NULL;
-  struct SortedTableEntry entryToFind = {key, NULL};
+  const struct SortedTableEntry entryToFind = {key, NULL};
   struct SortedTableEntry* pEntryFound;
 
   assert(sortedTable != NULL);
