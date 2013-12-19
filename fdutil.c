@@ -22,15 +22,15 @@
 #include <unistd.h>
 
 int setFDNonBlocking(
-  int socket)
+  int fd)
 {
-  int flags = fcntl(socket, F_GETFL, 0);
+  int flags = fcntl(fd, F_GETFL, 0);
   if (flags < 0)
   {
     return flags;
   }
   flags |= O_NONBLOCK;
-  return fcntl(socket, F_SETFL, flags);
+  return fcntl(fd, F_SETFL, flags);
 }
 
 static ssize_t signalSafeRead(
