@@ -36,6 +36,7 @@
 #include <netinet/in.h>
 
 #define DEFAULT_BUFFER_SIZE (16 * 1024)
+#define DEFAULT_NO_DELAY_SETTING (false)
 #define DEFAULT_NUM_IO_THREADS (1)
 #define MAX_OPERATIONS_FOR_ONE_FD (100)
 #define INITIAL_CONNECTION_SOCKET_INFO_POOL_SIZE (16)
@@ -181,7 +182,7 @@ static const struct ProxySettings* processArgs(
   struct ProxySettings* proxySettings = 
     checkedCalloc(1, sizeof(struct ProxySettings), __FILE__, __LINE__);
   proxySettings->bufferSize = DEFAULT_BUFFER_SIZE;
-  proxySettings->noDelay = false;
+  proxySettings->noDelay = DEFAULT_NO_DELAY_SETTING;
   proxySettings->numIOThreads = DEFAULT_NUM_IO_THREADS;
   initializeLinkedList(&(proxySettings->serverAddrInfoList));
 
