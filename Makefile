@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cproxy.  If not, see <http://www.gnu.org/licenses/>.
 
-CC = gcc
+CC = cc
 CFLAGS = -pthread -g -O3 -Wall
 LDFLAGS = -pthread
 
