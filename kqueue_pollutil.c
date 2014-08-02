@@ -105,8 +105,8 @@ void addPollFDToPollState(
 
   internalPollState = pollState->internalPollState;
 
-  EV_SET(&events[0], fd, EVFILT_READ, readEventFlags, 0, 0, data);
-  EV_SET(&events[1], fd, EVFILT_WRITE, writeEventFlags, 0, 0, data);
+  EV_SET(&(events[0]), fd, EVFILT_READ, readEventFlags, 0, 0, data);
+  EV_SET(&(events[1]), fd, EVFILT_WRITE, writeEventFlags, 0, 0, data);
 
   retVal = signalSafeKevent(internalPollState->kqueueFD, events, 2, NULL, 0, &ts);
   if (retVal < 0)
@@ -169,8 +169,8 @@ void updatePollFDInPollState(
 
   internalPollState = pollState->internalPollState;
 
-  EV_SET(&events[0], fd, EVFILT_READ, readEventFlags, 0, 0, data);
-  EV_SET(&events[1], fd, EVFILT_WRITE, writeEventFlags, 0, 0, data);
+  EV_SET(&(events[0]), fd, EVFILT_READ, readEventFlags, 0, 0, data);
+  EV_SET(&(events[1]), fd, EVFILT_WRITE, writeEventFlags, 0, 0, data);
 
   retVal = signalSafeKevent(internalPollState->kqueueFD, events, 2, NULL, 0, &ts);
   if (retVal < 0)
@@ -196,8 +196,8 @@ void removePollFDFromPollState(
 
   internalPollState = pollState->internalPollState;
 
-  EV_SET(&events[0], fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-  EV_SET(&events[1], fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+  EV_SET(&(events[0]), fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+  EV_SET(&(events[1]), fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
   retVal = signalSafeKevent(internalPollState->kqueueFD, events, 2, NULL, 0, &ts);
   if (retVal < 0)
   {
