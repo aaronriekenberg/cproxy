@@ -92,11 +92,11 @@ void addPollFDToPollState(
   int retVal;
   struct kevent events[2];
   const struct timespec ts = {0, 0};
-  const u_short readEventFlags = 
+  const uint16_t readEventFlags = 
     (readEventInterest == INTERESTED_IN_READ_EVENTS) ?
     (EV_ADD | EV_ENABLE) :
     (EV_ADD | EV_DISABLE);
-  const u_short writeEventFlags = 
+  const uint16_t writeEventFlags = 
     (writeEventInterest == INTERESTED_IN_WRITE_EVENTS) ?
     (EV_ADD | EV_ENABLE) :
     (EV_ADD | EV_DISABLE);
@@ -156,11 +156,11 @@ void updatePollFDInPollState(
   int retVal;
   struct kevent events[2];
   const struct timespec ts = {0, 0};
-  const u_short readEventFlags = 
+  const uint16_t readEventFlags = 
     (readEventInterest == INTERESTED_IN_READ_EVENTS) ?
     EV_ENABLE :
     EV_DISABLE;
-  const u_short writeEventFlags = 
+  const uint16_t writeEventFlags = 
     (writeEventInterest == INTERESTED_IN_WRITE_EVENTS) ?
     EV_ENABLE :
     EV_DISABLE;
