@@ -138,7 +138,7 @@ void addPollFDToPollState(
     {
       internalPollState->keventArray =
         checkedRealloc(internalPollState->keventArray,
-                       (internalPollState->numFDs * 2) *
+                       internalPollState->keventArrayCapacity *
                        sizeof(struct kevent),
                        __FILE__, __LINE__);
     }
