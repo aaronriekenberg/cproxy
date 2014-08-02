@@ -62,9 +62,9 @@ static int signalSafeKevent(
   struct kevent *eventlist, int nevents,
   const struct timespec *timeout)
 {
+  const struct timespec zeroTimespec = {0, 0};
   bool interrupted;
   int retVal;
-  const struct timespec zeroTimespec = {0, 0};
   do
   {
     retVal = kevent(
@@ -88,9 +88,6 @@ void addPollFDToPollState(
   enum ReadEventInterest readEventInterest,
   enum WriteEventInterest writeEventInterest)
 {
-  struct InternalPollState* internalPollState;
-  int retVal;
-  struct kevent events[2];
   const struct timespec ts = {0, 0};
   const uint16_t readEventFlags = 
     (readEventInterest == INTERESTED_IN_READ_EVENTS) ?
@@ -100,6 +97,9 @@ void addPollFDToPollState(
     (writeEventInterest == INTERESTED_IN_WRITE_EVENTS) ?
     (EV_ADD | EV_ENABLE) :
     (EV_ADD | EV_DISABLE);
+  struct InternalPollState* internalPollState;
+  struct kevent events[2];
+  int retVal;
 
   assert(pollState != NULL);
 
@@ -152,9 +152,6 @@ void updatePollFDInPollState(
   enum ReadEventInterest readEventInterest,
   enum WriteEventInterest writeEventInterest)
 {
-  struct InternalPollState* internalPollState = pollState->internalPollState;
-  int retVal;
-  struct kevent events[2];
   const struct timespec ts = {0, 0};
   const uint16_t readEventFlags = 
     (readEventInterest == INTERESTED_IN_READ_EVENTS) ?
@@ -164,6 +161,9 @@ void updatePollFDInPollState(
     (writeEventInterest == INTERESTED_IN_WRITE_EVENTS) ?
     EV_ENABLE :
     EV_DISABLE;
+  struct InternalPollState* internalPollState;
+  struct kevent events[2];
+  int retVal;
 
   assert(pollState != NULL);
 
@@ -187,10 +187,10 @@ void removePollFDFromPollState(
   struct PollState* pollState,
   int fd)
 {
-  struct InternalPollState* internalPollState;
-  int retVal;
-  struct kevent events[2];
   const struct timespec ts = {0, 0};
+  struct InternalPollState* internalPollState;
+  struct kevent events[2];
+  int retVal;
 
   assert(pollState != NULL);
 
