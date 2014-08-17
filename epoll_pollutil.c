@@ -44,7 +44,7 @@ void initializePollState(
   internalPollState =
     checkedCalloc(1, sizeof(struct InternalPollState), __FILE__, __LINE__);
   pollState->internalPollState = internalPollState;
-  internalPollState->epollFD = epoll_create(1);
+  internalPollState->epollFD = epoll_create1(0);
   if (internalPollState->epollFD < 0)
   {
     proxyLog("epoll_create error errno %d: %s",
