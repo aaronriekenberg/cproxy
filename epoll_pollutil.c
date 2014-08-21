@@ -47,7 +47,7 @@ void initializePollState(
   internalPollState->epollFD = epoll_create1(0);
   if (internalPollState->epollFD < 0)
   {
-    proxyLog("epoll_create error errno %d: %s",
+    proxyLog("epoll_create1 error errno %d: %s",
              errno,
              errnoToString(errno));
     abort();
