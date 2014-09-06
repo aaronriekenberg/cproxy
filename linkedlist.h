@@ -36,7 +36,7 @@ struct LinkedList
 extern void initializeLinkedList(
   struct LinkedList* list);
 
-#define EMPTY_LINKED_LIST {NULL, NULL, 0}
+#define EMPTY_LINKED_LIST {.head = NULL, .tail = NULL, .size = 0}
 
 /* Add new LinkedListNode to the tail of the list with specified data */
 extern void addToLinkedList(
