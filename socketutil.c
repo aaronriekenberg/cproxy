@@ -66,11 +66,11 @@ int getSocketError(
 {
   int optval = 0;
   socklen_t optlen = sizeof(optval);
-  int retval = 
+  int retVal =
     getsockopt(socket, SOL_SOCKET, SO_ERROR, &optval, &optlen);
-  if (retval < 0)
+  if (retVal < 0)
   {
-    return retval;
+    return retVal;
   }
   return optval;
 }
