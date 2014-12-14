@@ -35,8 +35,7 @@ static void resizeBufferPool(
   bufferPool->poolSize = newSize;
   bufferPool->bufferArray = 
     checkedRealloc(bufferPool->bufferArray,
-                   newSize * sizeof(void*),
-                   __FILE__, __LINE__);
+                   newSize * sizeof(void*));
   memset(
     &(bufferPool->bufferArray[originalSize]),
     0,
@@ -44,7 +43,7 @@ static void resizeBufferPool(
 
   for (i = 0; i < (newSize - originalSize); ++i)
   {
-    void* buffer = checkedMalloc(bufferPool->bufferSize, __FILE__, __LINE__);
+    void* buffer = checkedMalloc(bufferPool->bufferSize);
     returnBufferToBufferPool(
       bufferPool,
       buffer);

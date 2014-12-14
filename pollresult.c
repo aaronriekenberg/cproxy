@@ -45,8 +45,7 @@ void setPollResultNumReadyFDs(
     pollResult->readyFDInfoArray =
       checkedRealloc(
         pollResult->readyFDInfoArray,
-        pollResult->arrayCapacity * sizeof(struct ReadyFDInfo),
-        __FILE__, __LINE__);
+        pollResult->arrayCapacity * sizeof(struct ReadyFDInfo));
   }
 
   pollResult->numReadyFDs = numReadyFDs;

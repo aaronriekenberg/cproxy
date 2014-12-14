@@ -50,7 +50,7 @@ static void* sortedTableTreeMalloc(
   struct libavl_allocator* allocator,
   size_t size)
 {
-  return checkedMalloc(size, __FILE__, __LINE__);
+  return checkedMalloc(size);
 }
 
 static void sortedTableTreeFree(
@@ -84,7 +84,7 @@ void addToSortedTable(
 
   assert(sortedTable != NULL);
 
-  pEntry = checkedMalloc(sizeof(struct SortedTableEntry), __FILE__, __LINE__);
+  pEntry = checkedMalloc(sizeof(struct SortedTableEntry));
   pEntry->key = key;
   pEntry->data = data;
 
@@ -106,7 +106,7 @@ void* replaceDataInSortedTable(
 
   assert(sortedTable != NULL);
 
-  pEntry = checkedMalloc(sizeof(struct SortedTableEntry), __FILE__, __LINE__);
+  pEntry = checkedMalloc(sizeof(struct SortedTableEntry));
   pEntry->key = key;
   pEntry->data = data;
 

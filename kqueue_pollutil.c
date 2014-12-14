@@ -43,7 +43,7 @@ void initializePollState(
 
   memset(pollState, 0, sizeof(struct PollState));
   internalPollState =
-    checkedCalloc(1, sizeof(struct InternalPollState), __FILE__, __LINE__);
+    checkedCalloc(1, sizeof(struct InternalPollState));
   pollState->internalPollState = internalPollState;
   internalPollState->kqueueFD = kqueue();
   if (internalPollState->kqueueFD < 0)
@@ -139,8 +139,7 @@ void addPollFDToPollState(
       internalPollState->keventArray =
         checkedRealloc(internalPollState->keventArray,
                        internalPollState->keventArrayCapacity *
-                       sizeof(struct kevent),
-                       __FILE__, __LINE__);
+                       sizeof(struct kevent));
     }
   }
 }

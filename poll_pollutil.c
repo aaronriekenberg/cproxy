@@ -41,7 +41,7 @@ void initializePollState(
 
   memset(pollState, 0, sizeof(struct PollState));
   internalPollState =
-    checkedCalloc(1, sizeof(struct InternalPollState), __FILE__, __LINE__);
+    checkedCalloc(1, sizeof(struct InternalPollState));
   pollState->internalPollState = internalPollState;
   initializeSortedTable(&(internalPollState->fdDataTable));
   proxyLog("created poll");
@@ -74,8 +74,7 @@ void addPollFDToPollState(
     fd, data);
   internalPollState->pollfdArray =
     checkedRealloc(internalPollState->pollfdArray,
-                   internalPollState->numFDs * sizeof(struct pollfd),
-                   __FILE__, __LINE__);
+                   internalPollState->numFDs * sizeof(struct pollfd));
   internalPollState->pollfdArray[internalPollState->numFDs - 1].fd = fd;
   internalPollState->pollfdArray[internalPollState->numFDs - 1].events =
     ((readEventInterest == INTERESTED_IN_READ_EVENTS) ? POLLIN : 0) |
@@ -142,8 +141,7 @@ void removePollFDFromPollState(
   }
 
   newPollfdArray =
-    checkedMalloc((internalPollState->numFDs - 1) * sizeof(struct pollfd),
-                   __FILE__, __LINE__);
+    checkedMalloc((internalPollState->numFDs - 1) * sizeof(struct pollfd));
   newPollfdArrayIndex = 0;
   for (i = 0; i < internalPollState->numFDs; ++i)
   {

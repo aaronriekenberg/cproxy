@@ -18,15 +18,13 @@
 #include <stdio.h>
 
 void* checkedMalloc(
-  size_t size,
-  const char* file,
-  int line)
+  size_t size)
 {
   void* retVal = malloc(size);
   if ((!retVal) && size)
   {
-    printf("malloc failed size %ld %s:%d\n",
-           (long)size, file, line);
+    printf("malloc failed size %ld\n",
+           (long)size);
     abort();
   }
   return retVal;
@@ -34,15 +32,13 @@ void* checkedMalloc(
 
 void* checkedCalloc(
   size_t nmemb,
-  size_t size,
-  const char* file,
-  int line)
+  size_t size)
 {
   void* retVal = calloc(nmemb, size);
   if ((!retVal) && nmemb && size)
   {
-    printf("calloc failed nmemb %ld size %ld %s:%d\n",
-           (long)nmemb, (long)size, file, line);
+    printf("calloc failed nmemb %ld size %ld\n",
+           (long)nmemb, (long)size);
     abort();
   }
   return retVal;
@@ -50,15 +46,13 @@ void* checkedCalloc(
 
 void* checkedRealloc(
   void* ptr,
-  size_t size,
-  const char* file,
-  int line)
+  size_t size)
 {
   void* retVal = realloc(ptr, size);
   if ((!retVal) && size)
   {
-    printf("realloc failed ptr %p size %ld %s:%d\n",
-           ptr, (long)size, file, line);
+    printf("realloc failed ptr %p size %ld\n",
+           ptr, (long)size);
     abort();
   }
   return retVal;

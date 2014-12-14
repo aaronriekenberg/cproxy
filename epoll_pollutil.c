@@ -42,7 +42,7 @@ void initializePollState(
 
   memset(pollState, 0, sizeof(struct PollState));
   internalPollState =
-    checkedCalloc(1, sizeof(struct InternalPollState), __FILE__, __LINE__);
+    checkedCalloc(1, sizeof(struct InternalPollState));
   pollState->internalPollState = internalPollState;
   internalPollState->epollFD = epoll_create1(0);
   if (internalPollState->epollFD < 0)
@@ -106,8 +106,7 @@ void addPollFDToPollState(
       internalPollState->epollEventArray =
         checkedRealloc(internalPollState->epollEventArray,
                        internalPollState->epollEventArrayCapacity *
-                       sizeof(struct epoll_event),
-                       __FILE__, __LINE__);
+                       sizeof(struct epoll_event));
     }
   }
 }

@@ -180,7 +180,7 @@ static const struct ProxySettings* processArgs(
   bool foundLocalAddress = false;
   bool foundRemoteAddress = false;
   struct ProxySettings* proxySettings = 
-    checkedCalloc(1, sizeof(struct ProxySettings), __FILE__, __LINE__);
+    checkedCalloc(1, sizeof(struct ProxySettings));
   proxySettings->bufferSize = DEFAULT_BUFFER_SIZE;
   proxySettings->noDelay = DEFAULT_NO_DELAY_SETTING;
   proxySettings->numIOThreads = DEFAULT_NUM_IO_THREADS;
@@ -323,7 +323,7 @@ static void setupServerSockets(
     struct addrinfo* listenAddrInfo = nodePtr->data;
     struct AddrPortStrings serverAddrPortStrings;
     struct ServerSocketInfo* serverSocketInfo =
-      checkedMalloc(sizeof(struct ServerSocketInfo), __FILE__, __LINE__);
+      checkedMalloc(sizeof(struct ServerSocketInfo));
 
     if (addressToNameAndPort(listenAddrInfo->ai_addr,
                              listenAddrInfo->ai_addrlen,
@@ -1147,8 +1147,7 @@ static struct IOThreadPipeInfo* createIOThreadPipes(
   struct IOThreadPipeInfo* ioThreadPipeInfoArray;
 
   ioThreadPipeInfoArray =
-    checkedCalloc(numPipes, sizeof(struct IOThreadPipeInfo),
-                  __FILE__, __LINE__);
+    checkedCalloc(numPipes, sizeof(struct IOThreadPipeInfo));
   for (i = 0; i < numPipes; ++i)
   {
     if (pipe(pipeFDs) < 0)
@@ -1175,11 +1174,11 @@ static void startIOThreads(
   for (i = 0; i < proxySettings->numIOThreads; ++i)
   {
     pIOThreadCreateMessage =
-      checkedMalloc(sizeof(struct IOThreadCreateMessage), __FILE__, __LINE__);
+      checkedMalloc(sizeof(struct IOThreadCreateMessage));
     pIOThreadCreateMessage->ioThreadNumber = i;
     pIOThreadCreateMessage->addClientMessageFD = ioThreadPipeInfoArray[i].readFD;
     pIOThreadCreateMessage->proxySettings = proxySettings;
-    pPthread = checkedMalloc(sizeof(pthread_t), __FILE__, __LINE__);
+    pPthread = checkedMalloc(sizeof(pthread_t));
 
     pthreadRetVal =
       pthread_create(
@@ -1331,18 +1330,17 @@ static void startAcceptorThread(
   ioThreadPipeWriteFDs = 
     checkedCalloc(
       proxySettings->numIOThreads, 
-      sizeof(int), __FILE__, __LINE__);
+      sizeof(int));
   for (i = 0; i < proxySettings->numIOThreads; ++i)
   {
     ioThreadPipeWriteFDs[i] = ioThreadPipeInfoArray[i].writeFD;
   }
 
   pAcceptorThreadCreateMessage = 
-    checkedMalloc(sizeof(struct AcceptorThreadCreateMessage),
-    __FILE__, __LINE__);
+    checkedMalloc(sizeof(struct AcceptorThreadCreateMessage));
   pAcceptorThreadCreateMessage->ioThreadPipeWriteFDs = ioThreadPipeWriteFDs;
   pAcceptorThreadCreateMessage->proxySettings = proxySettings;
-  pPthread = checkedMalloc(sizeof(pthread_t), __FILE__, __LINE__);
+  pPthread = checkedMalloc(sizeof(pthread_t));
 
   pthreadRetVal =
     pthread_create(

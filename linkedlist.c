@@ -35,7 +35,7 @@ void addToLinkedList(
 
   assert(list != NULL);
 
-  node = checkedCalloc(1, sizeof(struct LinkedListNode), __FILE__, __LINE__);
+  node = checkedCalloc(1, sizeof(struct LinkedListNode));
   node->data = data;
   if (list->tail == NULL)
   {

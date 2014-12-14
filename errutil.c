@@ -23,7 +23,7 @@
 
 char* errnoToString(int errnoToTranslate)
 {
-  char* buffer = checkedMalloc(80, __FILE__, __LINE__);
+  char* buffer = checkedMalloc(80);
   int retVal = strerror_r(errnoToTranslate, buffer, 80);
   if (retVal < 0)
   {
