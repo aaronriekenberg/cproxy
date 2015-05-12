@@ -108,8 +108,13 @@ void proxyLogSetThreadName(const char* threadName)
     oldDataPtr = NULL;
   }
 
-  threadNameCopy = checkedMalloc(strlen(threadName) + 1);
-  strcpy(threadNameCopy, threadName);
+  threadNameCopy = strdup(threadName);
+  if (!threadNameCopy)
+  {
+    printf("strdup failed\n");
+    abort();
+  }
+
   retVal = pthread_setspecific(logThreadNameKey, threadNameCopy);
   if (retVal != 0)
   {
