@@ -1265,7 +1265,7 @@ static void handleServerSocketReady(
 
 struct AcceptorThreadCreateMessage
 {
-  int* ioThreadPipeWriteFDs;
+  const int* ioThreadPipeWriteFDs;
   const struct ProxySettings* proxySettings;
 };
 
