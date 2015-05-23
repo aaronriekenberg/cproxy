@@ -1303,8 +1303,8 @@ static void* runAcceptorThread(void* param)
          i < pollResult->numReadyFDs;
          ++i)
     {
-      struct ReadyFDInfo* readyFDInfo = &(pollResult->readyFDInfoArray[i]);
-      struct ServerSocketInfo* serverSocketInfo = readyFDInfo->data;
+      const struct ReadyFDInfo* readyFDInfo = &(pollResult->readyFDInfoArray[i]);
+      const struct ServerSocketInfo* serverSocketInfo = readyFDInfo->data;
       handleServerSocketReady(
         serverSocketInfo, 
         proxySettings,
