@@ -1241,7 +1241,7 @@ static void handleServerSocketReady(
   while ((!acceptError) &&
          (numAccepts < MAX_OPERATIONS_FOR_ONE_FD))
   {
-    int acceptedFD = signalSafeAccept(serverSocketInfo->socket, NULL, NULL);
+    const int acceptedFD = signalSafeAccept(serverSocketInfo->socket, NULL, NULL);
     ++numAccepts;
     if (acceptedFD < 0)
     {
