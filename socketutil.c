@@ -23,7 +23,7 @@
 
 int addressToNameAndPort(
   const struct sockaddr* address,
-  socklen_t addressSize,
+  const socklen_t addressSize,
   struct AddrPortStrings* addrPortStrings)
 {
   int retVal;
