@@ -1198,9 +1198,9 @@ static void writeAcceptedFDToIOThread(
   const struct ProxySettings* proxySettings,
   const int* ioThreadPipeWriteFDs,
   size_t* nextPipeWriteFDIndex,
-  int acceptedFD)
+  const int acceptedFD)
 {
-  unsigned char* pCharBuffer = (unsigned char*)(&acceptedFD);
+  const unsigned char* pCharBuffer = (const unsigned char*)(&acceptedFD);
   size_t bytesToWrite = sizeof(int);
   size_t totalBytesWritten = 0;
 

@@ -58,7 +58,7 @@ struct WriteToFDResult
 
 struct WriteToFDResult writeToFD(
   int fd,
-  void* buf,
+  const void* buf,
   size_t bytesToWrite);
 
 extern int signalSafeClose(

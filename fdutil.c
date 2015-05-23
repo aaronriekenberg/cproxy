@@ -106,7 +106,7 @@ struct ReadFromFDResult readFromFD(
 
 static ssize_t signalSafeWrite(
   int fd,
-  void* buf,
+  const void* buf,
   size_t count)
 {
   bool interrupted;
@@ -123,7 +123,7 @@ static ssize_t signalSafeWrite(
 
 struct WriteToFDResult writeToFD(
   int fd,
-  void* buf,
+  const void* buf,
   size_t bytesToWrite)
 {
   ssize_t writeRetVal;
