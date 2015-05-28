@@ -60,7 +60,7 @@ static void printUsageAndExit()
 static int parseBufferSize(
   const char* optarg)
 {
-  int bufferSize = atoi(optarg);
+  const int bufferSize = atoi(optarg);
   if (bufferSize <= 0)
   {
     proxyLog("invalid buffer size %s", optarg);
@@ -72,7 +72,7 @@ static int parseBufferSize(
 static int parseNumIOThreads(
   const char* optarg)
 {
-  int numIOThreads = atoi(optarg);
+  const int numIOThreads = atoi(optarg);
   if (numIOThreads <= 0)
   {
     proxyLog("invalid num io threads %s", optarg);
@@ -320,7 +320,7 @@ static void setupServerSockets(
        nodePtr;
        nodePtr = nodePtr->next)
   {
-    struct addrinfo* listenAddrInfo = nodePtr->data;
+    const struct addrinfo* listenAddrInfo = nodePtr->data;
     struct AddrPortStrings serverAddrPortStrings;
     struct ServerSocketInfo* serverSocketInfo =
       checkedMalloc(sizeof(struct ServerSocketInfo));
@@ -329,6 +329,7 @@ static void setupServerSockets(
                              listenAddrInfo->ai_addrlen,
                              &serverAddrPortStrings) < 0)
     {
+      proxyLog("error resolving server listen address");
       exit(1);
     }
 
@@ -689,7 +690,7 @@ static void destroyConnection(
   struct PollState* pollState,
   struct BufferPool* connectionSocketInfoPool)
 {
-  int socket = connectionSocketInfo->socket;
+  const int socket = connectionSocketInfo->socket;
   struct ConnectionSocketInfo* relatedConnectionSocketInfo =
     connectionSocketInfo->relatedConnectionSocketInfo;
 
@@ -722,7 +723,7 @@ static struct ConnectionSocketInfo* handleConnectionReadyForError(
   struct ConnectionSocketInfo* connectionSocketInfo)
 {
   struct ConnectionSocketInfo* pDisconnectSocketInfo = NULL;
-  int socketError = getSocketError(connectionSocketInfo->socket);
+  const int socketError = getSocketError(connectionSocketInfo->socket);
   if (socketError != 0)
   {
     char* socketErrorString = errnoToString(socketError);
@@ -1366,7 +1367,7 @@ static void joinThreads(
        nodePtr = nodePtr->next)
   {
     pthread_t* pPthread = nodePtr->data;
-    int pthreadRetVal = pthread_join(*pPthread, NULL);
+    const int pthreadRetVal = pthread_join(*pPthread, NULL);
     if (pthreadRetVal != 0)
     {
       proxyLog("pthread_join error %d", pthreadRetVal);
