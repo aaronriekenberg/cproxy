@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 BASE_PORT=5000
 NUM_PORTS=10
