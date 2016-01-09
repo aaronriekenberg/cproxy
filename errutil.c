@@ -24,7 +24,7 @@
 char* errnoToString(int errnoToTranslate)
 {
   char* buffer = checkedMalloc(80);
-  int retVal = strerror_r(errnoToTranslate, buffer, 80);
+  const int retVal = strerror_r(errnoToTranslate, buffer, 80);
   if (retVal < 0)
   {
     printf("strerror_r error retVal = %d errnoToTranslate = %d errno = %d\n",
