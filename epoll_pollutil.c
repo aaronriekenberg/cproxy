@@ -200,7 +200,7 @@ const struct PollResult* blockingPoll(
   if (internalPollState->numFDs > 0)
   {
     size_t i;
-    int retVal = 
+    const int retVal = 
       signalSafeEpollWait(
         internalPollState->epollFD,
         internalPollState->epollEventArray,
