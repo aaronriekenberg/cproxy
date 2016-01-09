@@ -223,7 +223,7 @@ const struct PollResult* blockingPoll(
   if (internalPollState->numFDs > 0)
   {
     size_t i;
-    int retVal = signalSafeKevent(
+    const int retVal = signalSafeKevent(
                    internalPollState->kqueueFD,
                    NULL, 0,
                    internalPollState->keventArray,
