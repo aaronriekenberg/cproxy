@@ -193,7 +193,7 @@ const struct PollResult* blockingPoll(
   {
     size_t i;
     size_t readyFDIndex = 0;
-    int retVal = 
+    const int retVal =
       signalSafePoll(
         internalPollState->pollfdArray,
         internalPollState->numFDs,
