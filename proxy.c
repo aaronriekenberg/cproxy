@@ -43,17 +43,17 @@
 
 static void printUsageAndExit()
 {
-  printf("Usage:\n");
-  printf("  cproxy -l <local addr>:<local port>\n");
-  printf("         [-l <local addr>:<local port>...]\n");
-  printf("         -r <remote addr>:<remote port>\n");
-  printf("         [-b <buf size>] [-n] [-t <num io threads>]\n");
-  printf("Arguments:\n");
-  printf("  -l <local addr>:<local port>: specify listen address and port\n");
-  printf("  -r <remote addr>:<remote port>: specify remote address and port\n");
-  printf("  -b <buf size>: specify session buffer size in bytes\n");
-  printf("  -n: enable TCP no delay\n");
-  printf("  -t: <num io threads>: specify number of I/O threads\n");
+  printf("Usage:\n"
+         "  cproxy -l <local addr>:<local port>\n"
+         "         [-l <local addr>:<local port>...]\n"
+         "         -r <remote addr>:<remote port>\n"
+         "         [-b <buf size>] [-n] [-t <num io threads>]\n"
+         "Arguments:\n"
+         "  -l <local addr>:<local port>: specify listen address and port\n"
+         "  -r <remote addr>:<remote port>: specify remote address and port\n"
+         "  -b <buf size>: specify session buffer size in bytes\n"
+         "  -n: enable TCP no delay\n"
+         "  -t: <num io threads>: specify number of I/O threads\n");
   exit(1);
 }
 
