@@ -16,7 +16,7 @@
 
 #if (!defined(PROXY_DISABLE_EPOLL)) && defined(__linux__)
 #include "epoll_pollutil.c"
-#elif (!defined(PROXY_DISABLE_KQUEUE)) && (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__))
+#elif (!defined(PROXY_DISABLE_KQUEUE)) && (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__))
 #include "kqueue_pollutil.c"
 #else
 #include "poll_pollutil.c"

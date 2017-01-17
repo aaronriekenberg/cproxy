@@ -4,7 +4,7 @@ fdutil.o: fdutil.c fdutil.h
 linkedlist.o: linkedlist.c linkedlist.h memutil.h
 log.o: log.c log.h memutil.h timeutil.h
 memutil.o: memutil.c memutil.h
-pollutil.o: pollutil.c epoll_pollutil.c errutil.h log.h memutil.h \
+pollutil.o: pollutil.c kqueue_pollutil.c log.h errutil.h memutil.h \
  pollutil.h pollresult.h
 pollresult.o: pollresult.c memutil.h pollresult.h
 proxy.o: proxy.c bufferpool.h errutil.h fdutil.h linkedlist.h log.h \
